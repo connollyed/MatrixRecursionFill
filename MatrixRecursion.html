@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<!--
+Given a random matrix, where each cell is either 1 or 0,
+determine the groups of contiguous cells that have the value 1.
+Cells are considered contiguous if they are neighboring to the north, 
+south, east or west; i.e. no disgonals
+-->
+<html>
+	<head>
+		<title> Matrix Recursion </title>
+		<style>
+			#input, #output{
+				height: 300px;
+				width: 300px;
+				border-style: solid;
+				border-width 1px;
+			}
+		</style>
+	</head>
+
+	<body>
+		<canvas id="input"></canvas>
+		<canvas id="output"></canvas>
+		<script type="text/javascript">
+			"use strict";
+			var matrix = [];
+			var input = document.getElementById("input");
+			var output = document.getElementById("output");
+			var cellSize = 10;
+			var DELAY = 10000000;
+			
+			generateRandomMatrix(input);
+			drawGrid(input);
+			drawGrid(output);
+			drawCells(input, "black");
+			
+			processMatrix(output);
+			
+			function generateRandomMatrix(canvas){
+				for(var i=0;i<canvas.width/cellSize;i++){
+					var matrix_row = [];
+					for(var j=0;j<canvas.height/cellSize;j++){
+						matrix_row.push(Math.round(Math.random()));
+					}
+				matrix.push(matrix_row);
+				}
+			}
+			
+			function drawGrid(canvas){
+				var ctx = canvas.getContext("2d");
+				var width = canvas.width;
+				var height = canvas.height;
+				
+				// Draw Vertical Lines
+				for (var i=0; i < height; i++){
+					ctx.beginPath();
+					ctx.moveTo(i*cellSize,0);
+					ctx.lineTo(i*cellSize,height);
+					ctx.stroke();
+				}
+				
+				// Draw Horizontal Lines
+				for (i=0; i<width; i++){
+					ctx.beginPath();
+					ctx.moveTo(0,i*cellSize);
+					ctx.lineTo(width,i*cellSize);
+					ctx.stroke();
+				}	
+			}
+			
+			function drawCells(canvas, colour){
+				var ctx = canvas.getContext("2d");
+				for(var i=0;i<canvas.width/cellSize;i++){
+					for(var j=0; j<canvas.height/cellSize;j++){
+						if(matrix[i][j] === 1){
+							ctx.beginPath();
+							ctx.rect(i*cellSize,j*cellSize,cellSize,cellSize);
+							ctx.fillStyle = colour;
+							ctx.fill();
+						}
+					}
+				}
+			}
+			function drawCell(canvas,colour,i,j){
+				var ctx = output.getContext("2d");
+				ctx.beginPath();
+				ctx.rect(i*cellSize,j*cellSize,cellSize,cellSize);
+				ctx.fillStyle = colour;
+				ctx.fill();
+			};
+			
+			function randomColour(){
+				var r = Math.round(Math.random() * 200);
+				var g = Math.round(Math.random() * 200);
+				var b = Math.round(Math.random() * 200);
+				return "rgb(" + r +","+ g +","+ b + ")";
+			}
+
+			function processMatrix(canvas){
+				for(var r=0; r<canvas.width/cellSize; r++){
+					for(var c=0; c<canvas.height/cellSize; c++){
+						if(matrix[r][c] === 1){
+							var cell_colour = randomColour();
+							//matrix[r][c] = cell_colour;
+							checkNeighbours(canvas,cell_colour,r,c);
+						}
+					}
+				}
+			}
+			function checkNeighbours(canvas, colour, rows, cols) {
+			
+				
+				
+				var drawcell = drawCell(canvas,colour,rows,cols);
+				setTimeout(drawcell,DELAY,canvas,colour,rows,cols);
+				// check cell above
+				if(rows-1 >= 0 && matrix[rows-1][cols] === 1) {
+					matrix[rows-1][cols] = colour;
+					checkNeighbours(canvas, colour, rows-1, cols);
+				}
+
+				// check cell below
+				if(rows+1 < matrix.length && matrix[rows+1][cols] === 1) {
+					matrix[rows+1][cols] = colour;
+					checkNeighbours(canvas, colour, rows+1, cols);
+				}
+
+				// check cell to the left
+				if(cols-1 >= 0 && matrix[rows][cols-1] === 1) {
+					matrix[rows][cols-1] = colour;
+					checkNeighbours(canvas, colour, rows, cols-1);
+				}
+
+				// check cell to the right
+				if(cols+1 < matrix[rows].length && matrix[rows][cols+1] === 1) {
+					matrix[rows][cols+1] = colour;
+					checkNeighbours(canvas, colour, rows, cols+1);
+				}
+			};
+		</script>
+
+	</body>
+</html>

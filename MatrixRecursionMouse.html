@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<!--
+Given a random matrix, where each cell is either 1 or 0,
+determine the groups of contiguous cells that have the value 1.
+Cells are considered contiguous if they are neighboring to the north, 
+south, east or west; i.e. no diagonals,
+
+Users can create their own input matrix or modify a Computer Generated Matrix
+-->
+<html>
+	<head>
+		<title> Matrix Recursion </title>
+		<style>
+			#input, #output{
+				height: 300px;
+				width: 300px;
+				border-style: solid;
+				border-width 1px;
+			}
+			#output{
+				cursor: none;
+			}
+		</style>
+	</head>
+
+	<body>
+		<canvas id="input" width="300" height="300"></canvas>
+		<canvas id="output" width="300" height="300"></canvas>	</br>
+		<button id="run">Run</button>
+		<button id="genRandMatrix">Generate Random Matrix</button>
+		<button id="clear">Clear</button>
+		
+		<h1> Instructions </h1>
+		<p>
+			Given a random matrix, where each cell is either 1 or 0, <br/>
+			determine the groups of contiguous cells that have the value 1. <br/>
+			Cells are considered contiguous if they are neighbouring to the north, <br/>
+			south, east or west; i.e. no diagonals,
+		</p>
+		<p>
+			Input is on the left, Output is on the right
+		</p>
+		<p>
+			Users can create their own input matrix or modify a Computer Generated Matrix.
+		</p>
+		<script type="text/javascript">
+			"use strict";
+			var matrix = [];
+			var output_matrix = [];
+			var input = document.getElementById("input");
+			var output = document.getElementById("output");
+			var cellSize = 20;
+			var delay = 0;
+			var DELAY_INTERVAL = 50;
+			
+			init();
+			
+			function init(){
+				drawGrid(input);
+				drawGrid(output);
+				initMatrix(input);
+			}
+			
+			function initMatrix(canvas){
+				for(var i=0;i<canvas.width/cellSize;i++){
+					var matrix_row = [];
+					for(var j=0;j<canvas.height/cellSize;j++){
+						matrix_row.push(0);
+					}
+				//console.log(matrix_row);
+				matrix.push(matrix_row);
+				}
+			}
+			
+			function generateRandomMatrix(canvas){
+				clearCanvas();
+				for(var i=0;i<canvas.width/cellSize;i++){
+					var matrix_row = [];
+					for(var j=0;j<canvas.height/cellSize;j++){
+						matrix_row.push(Math.round(Math.random()));
+					}
+				matrix.push(matrix_row);
+				}
+			}
+			
+			function drawGrid(canvas){
+				var ctx = canvas.getContext("2d");
+				var height = canvas.height;
+				var width = canvas.width;
+
+				// Draw Vertical Lines
+				for (var i=0; i < height/cellSize; i++){
+					ctx.beginPath();
+					ctx.moveTo(i*cellSize,0);
+					ctx.lineTo(i*cellSize,height);
+					ctx.stroke();
+				}
+				
+				// Draw Horizontal Lines
+				for (i=0; i< width/cellSize; i++){
+					ctx.beginPath();
+					ctx.moveTo(0,i*cellSize);
+					ctx.lineTo(width,i*cellSize);
+					ctx.stroke();
+				}	
+			}
+			
+			function drawCells(canvas, colour){
+				var ctx = canvas.getContext("2d");
+				for(var i=0;i<canvas.width/cellSize;i++){
+					for(var j=0; j<canvas.height/cellSize;j++){
+						if(matrix[i][j] === 1){
+							ctx.beginPath();
+							ctx.rect(i*cellSize,j*cellSize,cellSize,cellSize);
+							ctx.fillStyle = colour;
+							ctx.fill();
+						}
+					}
+				}
+			}
+			function drawCell(canvas,colour,i,j){
+				var ctx = canvas.getContext("2d");
+				ctx.beginPath();
+				ctx.rect(i*cellSize,j*cellSize,cellSize,cellSize);
+				ctx.fillStyle = colour;
+				ctx.fill();
+			};
+			
+			function randomColour(){
+				var r = Math.round(Math.random() * 200);
+				var g = Math.round(Math.random() * 200);
+				var b = Math.round(Math.random() * 200);
+				return "rgb(" + r +","+ g +","+ b + ")";
+			}
+
+			function processMatrix(){
+				copyMatrix();
+				for(var r=0; r<output.width/cellSize; r++){
+					for(var c=0; c<output.height/cellSize; c++){
+						if(output_matrix[r][c] === 1){
+							var cell_colour = randomColour();
+							checkNeighbours(output,cell_colour,r,c);
+						}
+					}
+				}
+			}
+			function checkNeighbours(canvas, colour, rows, cols) {
+				//var drawcell = drawCell(canvas,colour,rows,cols);
+				setTimeout(drawCell, delay * DELAY_INTERVAL, canvas, colour, rows, cols);
+				delay++;
+				// check cell above
+				if(rows-1 >= 0 && output_matrix[rows-1][cols] === 1) {
+					output_matrix[rows-1][cols] = colour;
+					checkNeighbours(canvas, colour, rows-1, cols);
+				}
+
+				// check cell below
+				if(rows+1 < output_matrix.length && output_matrix[rows+1][cols] === 1) {
+					output_matrix[rows+1][cols] = colour;
+					checkNeighbours(canvas, colour, rows+1, cols);
+				}
+
+				// check cell to the left
+				if(cols-1 >= 0 && output_matrix[rows][cols-1] === 1) {
+					output_matrix[rows][cols-1] = colour;
+					checkNeighbours(canvas, colour, rows, cols-1);
+				}
+
+				// check cell to the right
+				if(cols+1 < output_matrix[rows].length && output_matrix[rows][cols+1] === 1) {
+					output_matrix[rows][cols+1] = colour;
+					checkNeighbours(canvas, colour, rows, cols+1);
+				}
+			}
+			
+			function copyMatrix(){
+				output_matrix = [];
+				for(var r=0; r<output.width/cellSize; r++){
+						output_matrix.push(matrix[r]);
+				}
+			}
+			// Add EventListener to Generate New Matrix
+			genRandMatrix.addEventListener("click", function(){
+				generateRandomMatrix(input);
+				drawCells(input, "black");
+			});
+			
+			// Add EventListener to Solve Recursive Colouring Problem
+			run.addEventListener("click", processMatrix);
+			
+			// Add EventListener to clear canvases
+			clear.addEventListener("click", clearCanvas);
+			
+			function clearCanvas(){				
+				// Clear Input Canvas
+				var ctx=input.getContext("2d");
+				ctx.beginPath();
+				ctx.rect(0,0,input.width,input.height);
+				ctx.fillStyle = "white";
+				ctx.fill();
+				ctx.closePath();
+				drawGrid(input);
+				
+				// Clear Output Canvas
+				var ctx=output.getContext("2d");
+				ctx.beginPath();
+				ctx.rect(0,0,input.width,input.height);
+				ctx.fillStyle = "white";
+				ctx.fill();
+				ctx.closePath();
+				drawGrid(output);
+				matrix = [];		//Clear Matrix
+			}
+			
+			// Add EventListener to input canvas grid	
+			input.addEventListener("click", function(evt){
+				var rect = input.getBoundingClientRect();
+				var x = evt.clientX - rect.left;
+				var y = evt.clientY - rect.top;
+				
+				var grid_x = Math.floor(x/cellSize);
+				var grid_y = Math.floor(y/cellSize);
+				
+				//alert(matrix[grid_x][grid_y]);
+				if(matrix[grid_x][grid_y] === 0){
+					matrix[grid_x][grid_y] = 1;
+					drawCell(this,"black",grid_x,grid_y);
+					//alert("set to 1");
+				}
+				else{
+					matrix[grid_x][grid_y] = 0;
+					drawCell(this,"white",grid_x,grid_y);
+					//alert("set to 0");
+				}
+			});
+		</script>
+	</body>
+</html>
